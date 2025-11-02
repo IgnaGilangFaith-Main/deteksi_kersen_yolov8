@@ -7,9 +7,7 @@
 ![Framework](https://img.shields.io/badge/Framework-YOLOv8-red?style=for-the-badge&logo=yolo)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-**Aplikasi berbasis AI untuk mendeteksi tingkat kematangan kersen (cherry) secara real-time**
-
-[🎯 Tentang](#tentang) • [🚀 Quick Start](#quick-start) • [📋 Fitur](#fitur) • [📚 Dokumentasi](#dokumentasi) • [👨‍💻 Developer](#developer)
+**Aplikasi berbasis AI untuk mendeteksi tingkat kematangan kersen (Muntingia Calabura) secara real-time**
 
 </div>
 
