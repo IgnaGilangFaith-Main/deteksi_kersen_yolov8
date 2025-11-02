@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deteksi Kematangan Kersen</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo {
+            font-size: 2rem;
+        }
+
+        .container-main {
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .camera-container {
+            position: relative;
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .video-placeholder {
+            width: 100%;
+            height: 400px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            color: #999;
+            font-size: 1.1rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-custom {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success-custom {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-success-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+        }
+
+        .btn-danger-custom {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .btn-danger-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(235, 51, 73, 0.4);
+        }
+
+        .btn-warning-custom {
+            background: linear-gradient(135deg, #f46d3a 0%, #ffc23a 100%);
+            color: white;
+        }
+
+        .btn-warning-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 109, 58, 0.4);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .status-mentah {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-setengah {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-matang {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .deteksi-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .deteksi-item.mentah {
+            border-left-color: #28a745;
+        }
+
+        .deteksi-item.setengah {
+            border-left-color: #ffc107;
+        }
+
+        .deteksi-item.matang {
+            border-left-color: #dc3545;
+        }
+
+        .deteksi-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .deteksi-confidence {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner-border-custom {
+            color: #667eea;
+            width: 2rem;
+            height: 2rem;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            color: #0c5aa0;
+        }
+
+        .result-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .result-image {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .keterangan-tingkat {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .tingkat-mentah {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .tingkat-setengah {
+            color: #ffc107;
+            font-weight: 600;
+        }
+
+        .tingkat-matang {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn-custom {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .card-body {
+                padding: 15px;
+            }
+
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+
+            .video-placeholder {
+                height: 300px;
+            }
+        }
+
+        footer {
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 50px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .status-offline {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#/">
+                <span class="logo">🍒</span>
+                <span>Deteksi Kematangan Kersen</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="status-indicator status-online"></span>
+                <span style="color: white; font-size: 0.9rem;">Online</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container container-main">
+        <div class="row">
+            <!-- Kamera Section -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-camera-video"></i> Kamera Real-time
+                    </div>
+                    <div class="card-body">
+                        <div class="info-box">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Info:</strong> Pastikan kamera sudah terhubung. Klik tombol "Mulai Kamera" untuk memulai deteksi.
+                        </div>
+
+                        <div class="camera-container">
+                            <video id="videoElement" playsinline></video>
+                            <canvas id="canvas"></canvas>
+                            <div class="video-placeholder" id="placeholder">
+                                <div>
+                                    <i class="bi bi-camera-video" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                    <p>Kamera tidak aktif</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="button-group">
+                            <button id="startBtn" class="btn btn-custom btn-success-custom">
+                                <i class="bi bi-play-circle"></i> Mulai Kamera
+                            </button>
+                            <button id="stopBtn" class="btn btn-custom btn-danger-custom" disabled>
+                                <i class="bi bi-stop-circle"></i> Hentikan
+                            </button>
+                            <button id="captureBtn" class="btn btn-custom btn-warning-custom" disabled>
+                                <i class="bi bi-camera"></i> Ambil Foto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hasil Deteksi -->
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <i class="bi bi-search"></i> Hasil Deteksi
+                    </div>
+                    <div class="card-body">
+                        <div id="loadingSpinner" class="loading-spinner">
+                            <div class="spinner-border spinner-border-custom" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p style="margin-top: 10px; color: #667eea;">Memproses gambar...</p>
+                        </div>
+
+                        <div id="resultContainer" class="result-container">
+                            <img id="resultImage" class="result-image" src="" alt="Hasil Deteksi">
+                            <div id="detectionInfo" class="keterangan-tingkat">
+                                <!-- Hasil akan ditampilkan di sini -->
+                            </div>
+                        </div>
+
+                        <div id="noResult" style="text-align: center; color: #999;">
+                            <p><i class="bi bi-image" style="font-size: 2rem;"></i></p>
+                            <p>Belum ada hasil deteksi</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Panel -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-info-circle"></i> Informasi Kelas
+                    </div>
+                    <div class="card-body">
+                        <div class="deteksi-item mentah">
+                            <div class="deteksi-label">🟢 Mentah (Belum Matang)</div>
+                            <div class="deteksi-confidence">
+                                Kersen berwarna hijau, belum siap dipanen. Rasanya masih asam dan keras.
+                            </div>
+                        </div>
+
+                        <div class="deteksi-item setengah">
+                            <div class="deteksi-label">🟡 Setengah Matang</div>
+                            <div class="deteksi-confidence">
+                                Kersen mulai berubah warna ke kuning-orange. Rasa mulai manis tapi masih sedikit asam.
+                            </div>
+                        </div>
+
+                        <div class="deteksi-item matang">
+                            <div class="deteksi-label">🔴 Matang</div>
+                            <div class="deteksi-confidence">
+                                Kersen berwarna merah cerah. Rasa sudah manis dan siap untuk dikonsumsi atau dipanen.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <i class="bi bi-bar-chart"></i> Statistik
+                    </div>
+                    <div class="card-body">
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #667eea;" id="totalDeteksi">0</div>
+                            <div style="color: #666; font-size: 0.9rem;">Total Deteksi</div>
+                        </div>
+
+                        <hr>
+
+                        <div id="statsContainer">
+                            <div style="margin-bottom: 10px;">
+                                <small style="color: #666;">Mentah:</small>
+                                <div style="font-weight: 600; color: #28a745;" id="countMentah">0</div>
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <small style="color: #666;">Setengah Matang:</small>
+                                <div style="font-weight: 600; color: #ffc107;" id="countSetengah">0</div>
+                            </div>
+                            <div>
+                                <small style="color: #666;">Matang:</small>
+                                <div style="font-weight: 600; color: #dc3545;" id="countMatang">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>🍒 <strong>Sistem Deteksi Kematangan Kersen</strong> menggunakan teknologi YOLOv8</p>
+        <p style="margin: 0; font-size: 0.9rem; margin-top: 10px;">© 2025 - Semua hak cipta dilindungi</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const videoElement = document.getElementById('videoElement');
+        const canvas = document.getElementById('canvas');
+        const canvasContext = canvas.getContext('2d');
+        const placeholder = document.getElementById('placeholder');
+
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const captureBtn = document.getElementById('captureBtn');
+
+        const resultContainer = document.getElementById('resultContainer');
+        const resultImage = document.getElementById('resultImage');
+        const detectionInfo = document.getElementById('detectionInfo');
+        const noResult = document.getElementById('noResult');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        let stream = null;
+        let isRunning = false;
+        let stats = {
+            mentah: 0,
+            setengah: 0,
+            matang: 0
+        };
+
+        startBtn.addEventListener('click', startCamera);
+        stopBtn.addEventListener('click', stopCamera);
+        captureBtn.addEventListener('click', captureAndDetect);
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                });
+
+                videoElement.srcObject = stream;
+                videoElement.play();
+
+                placeholder.style.display = 'none';
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                captureBtn.disabled = false;
+                isRunning = true;
+
+                console.log('✅ Kamera berhasil dimulai');
+            } catch (error) {
+                console.error('❌ Error akses kamera:', error);
+                alert('Gagal mengakses kamera. Pastikan izin kamera sudah diberikan.');
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                videoElement.srcObject = null;
+                placeholder.style.display = 'flex';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                captureBtn.disabled = true;
+                isRunning = false;
+                console.log('⏹️  Kamera dihentikan');
+            }
+        }
+
+        async function captureAndDetect() {
+            if (!isRunning) {
+                alert('Kamera belum dijalankan!');
+                return;
+            }
+
+            try {
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+
+                canvasContext.drawImage(videoElement, 0, 0);
+
+                const imageData = canvas.toDataURL('image/jpeg');
+
+                loadingSpinner.style.display = 'block';
+                noResult.style.display = 'none';
+                resultContainer.style.display = 'none';
+
+                const response = await fetch('/detect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        image: imageData
+                    })
+                });
+
+                const data = await response.json();
+
+                loadingSpinner.style.display = 'none';
+
+                if (data.status === 'success') {
+                    resultImage.src = data.image;
+                    resultContainer.style.display = 'block';
+                    noResult.style.display = 'none';
+
+                    updateDetectionInfo(data.deteksi);
+                    updateStats(data.deteksi);
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('❌ Error deteksi:', error);
+                loadingSpinner.style.display = 'none';
+                alert('Gagal melakukan deteksi. Cek console untuk detail error.');
+            }
+        }
+
+        function updateDetectionInfo(deteksi) {
+            let html = '';
+
+            if (deteksi.length === 0) {
+                html = '<p style="color: #999; text-align: center;">Tidak ada kersen yang terdeteksi</p>';
+            } else {
+                html = `<h6 style="margin-bottom: 15px; color: #333;">Ditemukan ${deteksi.length} kersen:</h6>`;
+
+                deteksi.forEach((item, index) => {
+                    const className = item.kelas.toLowerCase().replace(/\s/g, '-');
+                    const classColor = getColorClass(item.kelas);
+
+                    html += `
+                        <div class="deteksi-item ${classColor}">
+                            <div class="deteksi-label">
+                                #${index + 1} - ${item.kelas}
+                            </div>
+                            <div class="deteksi-confidence">
+                                Confidence: ${(item.confidence * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            detectionInfo.innerHTML = html;
+        }
+
+        function updateStats(deteksi) {
+            stats = { mentah: 0, setengah: 0, matang: 0 };
+
+            deteksi.forEach(item => {
+                if (item.kelas === 'Mentah') stats.mentah++;
+                else if (item.kelas === 'Setengah Matang') stats.setengah++;
+                else if (item.kelas === 'Matang') stats.matang++;
+            });
+
+            document.getElementById('totalDeteksi').textContent = deteksi.length;
+            document.getElementById('countMentah').textContent = stats.mentah;
+            document.getElementById('countSetengah').textContent = stats.setengah;
+            document.getElementById('countMatang').textContent = stats.matang;
+        }
+
+        function getColorClass(kelas) {
+            if (kelas === 'Mentah') return 'mentah';
+            if (kelas === 'Setengah Matang') return 'setengah';
+            if (kelas === 'Matang') return 'matang';
+            return '';
+        }
+
+        window.addEventListener('load', () => {
+            console.log('🚀 Web app ready!');
+            checkServerHealth();
+        });
+
+        async function checkServerHealth() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    console.log('✅ Server connected, model loaded');
+                } else {
+                    console.warn('⚠️  Model not loaded');
+                }
+            } catch (error) {
+                console.error('❌ Server connection failed:', error);
+            }
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+path: dataset_organized
+train: images
+val: images
+test: images
+
+nc: 3
+names: ['mentah', 'setengah_matang', 'matang']
