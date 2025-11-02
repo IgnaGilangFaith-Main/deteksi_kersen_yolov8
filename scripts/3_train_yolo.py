@@ -1,6 +1,6 @@
 """
 Script untuk training YOLOv8 dengan dataset kersen
-Gunakan GPU jika tersedia untuk hasil lebih cepat
+Versi cepat untuk CPU
 """
 
 import os
@@ -16,10 +16,11 @@ PATH_DATA_YAML = r"train_split/data.yaml"
 FOLDER_MODELS = r"models"
 FOLDER_RESULTS = r"results"
 
-EPOCH = 100
-BATCH_SIZE = 16  # Kurangi jika out of memory
-UKURAN_GAMBAR = 640
-PATIENCE = 20  # Early stopping
+# KONFIGURASI CEPAT (untuk CPU)
+EPOCH = 100              
+BATCH_SIZE = 4          
+UKURAN_GAMBAR = 416     
+PATIENCE = 15            
 
 # ============================================
 # SETUP
@@ -28,22 +29,23 @@ PATIENCE = 20  # Early stopping
 Path(FOLDER_MODELS).mkdir(exist_ok=True)
 Path(FOLDER_RESULTS).mkdir(exist_ok=True)
 
-# Cek device yang tersedia
+# Cek device
 print("\n" + "=" * 50)
 print("INFO PERANGKAT")
 print("=" * 50)
-print(f"GPU Tersedia: {torch.cuda.is_available()}")
-print(f"Jumlah GPU: {torch.cuda.device_count()}")
 
-# Gunakan CPU jika GPU tidak tersedia
-if torch.cuda.is_available():
+gpu_tersedia = torch.cuda.is_available()
+jumlah_gpu = torch.cuda.device_count()
+
+print(f"GPU Tersedia: {gpu_tersedia}")
+print(f"Jumlah GPU: {jumlah_gpu}")
+
+if gpu_tersedia:
     device = 0
-    device_name = "GPU"
     print(f"GPU yang digunakan: {torch.cuda.get_device_name(0)}")
 else:
     device = "cpu"
-    device_name = "CPU"
-    print(f"Menggunakan: {device_name}")
+    print(f"Menggunakan: CPU")
 
 print("=" * 50 + "\n")
 
@@ -51,13 +53,16 @@ print("=" * 50 + "\n")
 # TRAINING
 # ============================================
 
-print(f"\n🚀 Memulai training...")
+print("🚀 Memulai training...")
 print(f"Data: {PATH_DATA_YAML}")
 print(f"Epoch: {EPOCH}")
 print(f"Batch size: {BATCH_SIZE}")
+print(f"Ukuran gambar: {UKURAN_GAMBAR}")
+print(f"Device: {device}")
+print(f"⏱️  Estimasi waktu: 10-20 menit di CPU\n")
 
 # Load model
-model = YOLO('yolov8n.pt')  # Model Nano (cepat & efisien)
+model = YOLO('yolov8s.pt')
 
 # Training
 hasil = model.train(
@@ -66,9 +71,9 @@ hasil = model.train(
     imgsz=UKURAN_GAMBAR,
     batch=BATCH_SIZE,
     patience=PATIENCE,
-    device=device,  # Gunakan device yang sudah ditentukan
+    device=device,
     project=FOLDER_RESULTS,
-    name='kersen_v1',
+    name='kersen_v2',
     save=True,
     verbose=True,
     pretrained=True,
@@ -77,6 +82,16 @@ hasil = model.train(
     weight_decay=0.0005,
     lr0=0.01,
     plots=True,
+    hsv_h=0.015,
+    hsv_s=0.7,
+    hsv_v=0.4,
+    degrees=10,
+    translate=0.1,
+    scale=0.5,
+    flipud=0.5,
+    fliplr=0.5,
+    mosaic=1.0,
+    mixup=0.0,
 )
 
 # ============================================
@@ -84,12 +99,15 @@ hasil = model.train(
 # ============================================
 
 print("\n💾 Menyimpan model terbaik...")
-path_best_model = os.path.join(FOLDER_RESULTS, 'kersen_v1', 'weights', 'best.pt')
+path_best_model = os.path.join(FOLDER_RESULTS, 'kersen_v2', 'weights', 'best.pt')
+
 if os.path.exists(path_best_model):
     path_simpan = os.path.join(FOLDER_MODELS, 'yolov8n_kersen_best.pt')
     import shutil
     shutil.copy2(path_best_model, path_simpan)
     print(f"✅ Model disimpan: {path_simpan}")
+else:
+    print(f"⚠️  File model tidak ditemukan: {path_best_model}")
 
 # ============================================
 # EVALUASI
@@ -98,10 +116,9 @@ if os.path.exists(path_best_model):
 print("\n📊 Evaluasi pada test set...")
 model = YOLO(path_best_model)
 
-# Validasi
 metrik = model.val(
     data=PATH_DATA_YAML,
-    device=device,  # Gunakan device yang sudah ditentukan
+    device=device,
 )
 
 print(f"\n✅ Training selesai!")

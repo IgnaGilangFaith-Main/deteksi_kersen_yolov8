@@ -1,5 +1,6 @@
 """
 Flask Backend untuk Deteksi Kematangan Kersen
+Real-time Sync Version
 """
 
 from flask import Flask, render_template, request, jsonify
@@ -12,6 +13,14 @@ import os
 import torch
 from PIL import Image
 from io import BytesIO
+import logging
+
+# ============================================
+# LOGGING SETUP
+# ============================================
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # ============================================
 # INISIALISASI FLASK
@@ -24,9 +33,9 @@ CORS(app)
 # LOAD MODEL
 # ============================================
 
-print("\n" + "=" * 50)
+print("\n" + "=" * 60)
 print("DETEKSI KEMATANGAN KERSEN - WEB APP")
-print("=" * 50 + "\n")
+print("=" * 60 + "\n")
 
 # Cek device
 gpu_tersedia = torch.cuda.is_available()
@@ -43,14 +52,18 @@ print()
 
 # Load model
 MODEL_PATH = r"models/yolov8n_kersen_best.pt"
+model = None
 
 if not os.path.exists(MODEL_PATH):
     print(f"❌ Model tidak ditemukan: {MODEL_PATH}")
     print("⚠️  Jalankan script training terlebih dahulu!")
-    model = None
 else:
-    model = YOLO(MODEL_PATH)
-    print(f"✅ Model berhasil dimuat: {MODEL_PATH}")
+    try:
+        model = YOLO(MODEL_PATH)
+        print(f"✅ Model berhasil dimuat: {MODEL_PATH}")
+    except Exception as e:
+        print(f"❌ Error loading model: {e}")
+        logger.error(f"Model loading error: {e}")
 
 print()
 
@@ -62,9 +75,9 @@ NAMA_KELAS = {
 }
 
 WARNA_KELAS = {
-    0: (0, 255, 0),
-    1: (0, 165, 255),
-    2: (0, 0, 255)
+    0: (0, 255, 0),      # Hijau
+    1: (0, 165, 255),    # Orange
+    2: (0, 0, 255)       # Merah
 }
 
 # ============================================
@@ -84,17 +97,26 @@ def index():
 def detect():
     """API untuk deteksi dari gambar"""
     
+    logger.debug("Menerima request deteksi...")
+    
     if model is None:
+        logger.error("Model belum dimuat!")
         return jsonify({
             'status': 'error',
             'message': 'Model belum dimuat. Jalankan training terlebih dahulu!'
         }), 500
     
     try:
-        # Ambil gambar dari request
+        # Ambil gambar dan confidence dari request
         data = request.get_json()
         if not data or 'image' not in data:
-            return jsonify({'status': 'error', 'message': 'Gambar tidak ditemukan'}), 400
+            logger.error("Image tidak ditemukan di request")
+            return jsonify({
+                'status': 'error', 
+                'message': 'Gambar tidak ditemukan'
+            }), 400
+        
+        logger.debug("Decoding base64 image...")
         
         # Decode base64 image
         image_data = data['image'].split(',')[1]
@@ -103,19 +125,26 @@ def detect():
         
         # Convert PIL image to numpy array
         frame = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+        logger.debug(f"Frame shape: {frame.shape}")
         
-        # Deteksi
-        hasil = model.predict(frame, conf=0.5, verbose=False, device=device)
+        # Ambil confidence dari client (atau gunakan default)
+        confidence = data.get('confidence', 0.35)
+        
+        # Deteksi dengan confidence dari client
+        logger.debug(f"Menjalankan inference dengan confidence {confidence}...")
+        hasil = model.predict(frame, conf=confidence, verbose=False, device=device)
         
         # Draw bounding box
         frame_hasil = frame.copy()
         deteksi_list = []
         
+        logger.debug(f"Jumlah deteksi: {len(hasil[0].boxes)}")
+        
         for box in hasil[0].boxes:
             # Get coordinates
             x1, y1, x2, y2 = map(int, box.xyxy[0])
             id_kelas = int(box.cls[0])
-            confidence = float(box.conf[0])
+            confidence_score = float(box.conf[0])
             nama_kelas = NAMA_KELAS.get(id_kelas, "Unknown")
             warna = WARNA_KELAS.get(id_kelas, (255, 255, 255))
             
@@ -123,20 +152,24 @@ def detect():
             cv2.rectangle(frame_hasil, (x1, y1), (x2, y2), warna, 2)
             
             # Put text
-            label = f"{nama_kelas} ({confidence:.2f})"
+            label = f"{nama_kelas} ({confidence_score:.2f})"
             cv2.putText(frame_hasil, label, (x1, y1-10), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, warna, 2)
             
             # Tambah ke list
             deteksi_list.append({
                 'kelas': nama_kelas,
-                'confidence': round(confidence, 2),
+                'confidence': round(confidence_score, 2),
                 'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2
             })
+            
+            logger.debug(f"Deteksi: {nama_kelas} ({confidence_score:.2f})")
         
         # Convert kembali ke base64
         _, buffer = cv2.imencode('.jpg', frame_hasil)
         image_base64 = base64.b64encode(buffer).decode()
+        
+        logger.debug("Response berhasil dibuat")
         
         return jsonify({
             'status': 'success',
@@ -146,6 +179,7 @@ def detect():
         })
     
     except Exception as e:
+        logger.error(f"Error deteksi: {e}", exc_info=True)
         return jsonify({
             'status': 'error',
             'message': f'Error: {str(e)}'
@@ -158,7 +192,11 @@ def detect():
 @app.route('/health', methods=['GET'])
 def health():
     """Check status model"""
-    if model is None:
+    model_status = model is not None
+    
+    logger.debug(f"Health check - Model loaded: {model_status}")
+    
+    if not model_status:
         return jsonify({
             'status': 'error',
             'model_loaded': False,
@@ -168,7 +206,8 @@ def health():
     return jsonify({
         'status': 'ok',
         'model_loaded': True,
-        'classes': NAMA_KELAS
+        'classes': NAMA_KELAS,
+        'device': str(device)
     })
 
 # ============================================
@@ -181,6 +220,7 @@ def not_found(error):
 
 @app.errorhandler(500)
 def internal_error(error):
+    logger.error(f"Server error: {error}")
     return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
 
 # ============================================
@@ -188,8 +228,10 @@ def internal_error(error):
 # ============================================
 
 if __name__ == '__main__':
+    print("=" * 60)
     print("📡 Server berjalan di: http://localhost:5000")
     print("📹 Buka browser dan akses: http://localhost:5000")
-    print("✨ Tekan Ctrl+C untuk menghentikan server\n")
+    print("✨ Tekan Ctrl+C untuk menghentikan server")
+    print("=" * 60 + "\n")
     
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)

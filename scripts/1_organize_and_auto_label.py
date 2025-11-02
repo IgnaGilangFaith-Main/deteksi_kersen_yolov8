@@ -15,17 +15,13 @@ from tqdm import tqdm
 # KONFIGURASI
 # ============================================
 
-# Path ke folder datasets
 DATASETS_PATH = r"datasets"
-
-# Path output (akan dibuat otomatis)
 OUTPUT_PATH = r"dataset_organized"
 
-# Mapping folder ke class ID
 KELAS_MAPPING = {
-    "mentah": 0,           # Belum matang
-    "setengah_matang": 1,  # Setengah matang
-    "matang": 2            # Matang
+    "mentah": 0,
+    "setengah_matang": 1,
+    "matang": 2
 }
 
 # ============================================
@@ -70,8 +66,7 @@ def salin_gambar(path_sumber, path_output, kelas_mapping):
 
 def deteksi_bbox_buah(path_gambar, id_kelas):
     """
-    Mendeteksi bounding box menggunakan color-based segmentation
-    Berbeda untuk setiap tingkat kematangan
+    Mendeteksi bounding box dengan range HSV yang luas
     """
     gambar = cv2.imread(path_gambar)
     if gambar is None:
@@ -80,24 +75,25 @@ def deteksi_bbox_buah(path_gambar, id_kelas):
     hsv = cv2.cvtColor(gambar, cv2.COLOR_BGR2HSV)
     h, w = gambar.shape[:2]
     
-    # Definisi range warna per tingkat kematangan
+    # Range HSV yang lebih luas untuk deteksi lebih akurat
     if id_kelas == 0:  # Mentah (hijau)
-        lower = np.array([35, 40, 40])
-        upper = np.array([90, 255, 255])
+        lower = np.array([25, 20, 20])
+        upper = np.array([100, 255, 255])
     elif id_kelas == 1:  # Setengah matang (kuning-orange)
-        lower = np.array([15, 40, 40])
-        upper = np.array([35, 255, 255])
-    else:  # Matang (orange-merah)
-        lower = np.array([5, 40, 40])
-        upper = np.array([15, 255, 255])
+        lower = np.array([5, 20, 20])
+        upper = np.array([45, 255, 255])
+    else:  # Matang (merah)
+        lower = np.array([0, 40, 40])
+        upper = np.array([30, 255, 255])
     
     # Buat mask
     mask = cv2.inRange(hsv, lower, upper)
     
-    # Operasi morfologi
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    # Operasi morfologi yang lebih baik
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    mask = cv2.dilate(mask, kernel, iterations=1)
     
     # Cari kontur
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -105,7 +101,7 @@ def deteksi_bbox_buah(path_gambar, id_kelas):
     boxes = []
     for contour in contours:
         area = cv2.contourArea(contour)
-        if area < 500:  # Filter noise
+        if area < 200:  # Kurangi threshold
             continue
         
         x, y, bw, bh = cv2.boundingRect(contour)
@@ -200,7 +196,7 @@ def verifikasi_dataset(path_output, kelas_mapping):
     print("-" * 50)
     print(f"Total: {total_gambar} gambar, {total_label} label")
     
-    if total_gambar == total_label == 300:
+    if total_gambar == total_label:
         print("✅ Dataset siap untuk training!")
     else:
         print("⚠️  Ada yang kurang atau berlebih!")
@@ -214,19 +210,10 @@ if __name__ == "__main__":
     print("ORGANIZE & AUTO-LABEL DATASET KERSEN")
     print("=" * 50)
     
-    # Step 1: Buat folder
     buat_folder(OUTPUT_PATH)
-    
-    # Step 2: Salin gambar
     salin_gambar(DATASETS_PATH, OUTPUT_PATH, KELAS_MAPPING)
-    
-    # Step 3: Auto-label
     auto_label_gambar(DATASETS_PATH, OUTPUT_PATH, KELAS_MAPPING)
-    
-    # Step 4: Buat data.yaml
     buat_data_yaml(OUTPUT_PATH)
-    
-    # Step 5: Verifikasi
     verifikasi_dataset(OUTPUT_PATH, KELAS_MAPPING)
     
     print("\n✨ Selesai! Dataset terorganisir dan auto-labeled!")
