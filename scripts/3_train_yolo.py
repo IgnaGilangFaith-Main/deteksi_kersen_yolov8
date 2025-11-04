@@ -18,9 +18,9 @@ FOLDER_RESULTS = r"results"
 
 # KONFIGURASI CEPAT (untuk CPU)
 EPOCH = 100              
-BATCH_SIZE = 4          
+BATCH_SIZE = 8          
 UKURAN_GAMBAR = 416     
-PATIENCE = 15            
+PATIENCE = 0            
 
 # ============================================
 # SETUP
