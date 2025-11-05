@@ -1,6 +1,6 @@
 """
 Flask Backend untuk Deteksi Kematangan Kersen
-Real-time Sync Version
+Real-time Sync Version (BGR color fixed)
 """
 
 from flask import Flask, render_template, request, jsonify
@@ -74,10 +74,11 @@ NAMA_KELAS = {
     2: "Matang"
 }
 
+# PENTING: BGR format for cv2.rectangle
 WARNA_KELAS = {
-    0: (0, 255, 0),      # Hijau
-    1: (0, 165, 255),    # Orange
-    2: (0, 0, 255)       # Merah
+    0: (0, 255, 0),        # Mentah (Hijau)
+    1: (0, 255, 255),      # Setengah Matang (Kuning)
+    2: (0, 0, 255)         # Matang (Merah)
 }
 
 # ============================================
@@ -163,7 +164,7 @@ def detect():
                 'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2
             })
             
-            logger.debug(f"Deteksi: {nama_kelas} ({confidence_score:.2f})")
+            logger.debug(f"Deteksi: {nama_kelas} ({confidence_score:.2f}) Warna: {warna}")
         
         # Convert kembali ke base64
         _, buffer = cv2.imencode('.jpg', frame_hasil)

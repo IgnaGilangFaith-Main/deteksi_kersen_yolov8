@@ -1,703 +1,792 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Deteksi Kematangan Kersen</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
 
-        .navbar {
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
+      .navbar {
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
 
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: white !important;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+      .navbar-brand {
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: white !important;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
 
-        .logo {
-            font-size: 2rem;
-        }
+      .logo {
+        font-size: 2rem;
+      }
 
-        .container-main {
-            margin-top: 30px;
-            margin-bottom: 30px;
-        }
+      .container-main {
+        margin-top: 30px;
+        margin-bottom: 30px;
+      }
 
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.95);
-        }
+      .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.95);
+      }
 
-        .card-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 20px;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
+      .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 20px;
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
 
-        .card-body {
-            padding: 25px;
-        }
+      .card-body {
+        padding: 25px;
+      }
 
-        .video-wrapper {
-            position: relative;
-            width: 100%;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #000;
-            aspect-ratio: 4/3;
-        }
+      .video-wrapper {
+        position: relative;
+        width: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #000;
+        aspect-ratio: 4/3;
+      }
 
-        video {
-            width: 100%;
-            height: 100%;
-            display: block;
-            object-fit: cover;
-        }
+      video {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+      }
 
-        #displayCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-            border-radius: 10px;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
+      #displayCanvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        border-radius: 10px;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
 
-        canvas {
-            display: none;
-        }
+      canvas {
+        display: none;
+      }
 
-        .overlay-box {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            color: #00ff00;
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 0.9rem;
-            font-weight: 600;
-            z-index: 10;
-        }
+      .overlay-box {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: #00ff00;
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 0.9rem;
+        font-weight: 600;
+        z-index: 10;
+      }
 
+      .btn-group-custom {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        flex-wrap: wrap;
+      }
+
+      .btn-custom {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+
+      .btn-start {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+      }
+
+      .btn-start:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+      }
+
+      .btn-stop {
+        background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        color: white;
+      }
+
+      .btn-stop:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(235, 51, 73, 0.4);
+      }
+
+      .btn-custom:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+
+      .status-running {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-stopped {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+      }
+
+      .stat-box {
+        text-align: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+      }
+
+      .stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: #666;
+      }
+
+      .deteksi-item {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        border-left: 4px solid #667eea;
+        font-size: 0.9rem;
+      }
+
+      .deteksi-item.mentah {
+        border-left-color: #28a745;
+      }
+
+      .deteksi-item.setengah {
+        border-left-color: #ffc107;
+      }
+
+      .deteksi-item.matang {
+        border-left-color: #dc3545;
+      }
+
+      .slider-container {
+        margin-bottom: 15px;
+      }
+
+      .slider-label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333;
+        font-size: 0.9rem;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        cursor: pointer;
+      }
+
+      .slider-value {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 5px;
+      }
+
+      .info-box {
+        background: #e7f3ff;
+        border-left: 4px solid #2196f3;
+        padding: 12px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        color: #0c5aa0;
+        font-size: 0.9rem;
+      }
+
+      .loading-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: #ffc107;
+        border-radius: 50%;
+        margin-left: 5px;
+        animation: blink 1s infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        50% {
+          opacity: 1;
+        }
+        51%,
+        100% {
+          opacity: 0;
+        }
+      }
+
+      @media (max-width: 768px) {
         .btn-group-custom {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
+          flex-direction: column;
         }
 
         .btn-custom {
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            border: none;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-
-        .btn-start {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-        }
-
-        .btn-start:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
-        }
-
-        .btn-stop {
-            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-            color: white;
-        }
-
-        .btn-stop:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(235, 51, 73, 0.4);
-        }
-
-        .btn-custom:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .status-running {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-stopped {
-            background: #f8d7da;
-            color: #721c24;
+          width: 100%;
+          justify-content: center;
         }
 
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 15px;
+          grid-template-columns: repeat(2, 1fr);
         }
+      }
 
-        .stat-box {
-            text-align: center;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 2px solid #e9ecef;
-        }
+      footer {
+        background: rgba(0, 0, 0, 0.3);
+        color: white;
+        text-align: center;
+        padding: 20px;
+        margin-top: 50px;
+        font-size: 0.9rem;
+      }
 
-        .stat-number {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: #666;
-        }
-
-        .deteksi-item {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border-left: 4px solid #667eea;
-            font-size: 0.9rem;
-        }
-
-        .deteksi-item.mentah {
-            border-left-color: #28a745;
-        }
-
-        .deteksi-item.setengah {
-            border-left-color: #ffc107;
-        }
-
-        .deteksi-item.matang {
-            border-left-color: #dc3545;
-        }
-
-        .slider-container {
-            margin-bottom: 15px;
-        }
-
-        .slider-label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #333;
-            font-size: 0.9rem;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            cursor: pointer;
-        }
-
-        .slider-value {
-            font-size: 0.8rem;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .info-box {
-            background: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 12px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            color: #0c5aa0;
-            font-size: 0.9rem;
-        }
-
-        .loading-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: #ffc107;
-            border-radius: 50%;
-            margin-left: 5px;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
-        }
-
-        @media (max-width: 768px) {
-            .btn-group-custom {
-                flex-direction: column;
-            }
-
-            .btn-custom {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        footer {
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            text-align: center;
-            padding: 20px;
-            margin-top: 50px;
-            font-size: 0.9rem;
-        }
-
-        hr {
-            margin: 15px 0;
-            border: none;
-            border-top: 1px solid #e9ecef;
-        }
+      hr {
+        margin: 15px 0;
+        border: none;
+        border-top: 1px solid #e9ecef;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <a class="navbar-brand">
-                <span class="logo">🍒</span>
-                <span>Deteksi Kersen Real-time</span>
-            </a>
-        </div>
+      <div class="container-fluid">
+        <a class="navbar-brand">
+          <span class="logo">🍒</span>
+          <span>Deteksi Kersen Real-time</span>
+        </a>
+      </div>
     </nav>
 
     <div class="container container-main">
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="card">
-                    <div class="card-header">
-                        <i class="bi bi-camera-video"></i> Kamera Live dengan Deteksi
-                    </div>
-                    <div class="card-body">
-                        <div class="info-box">
-                            <i class="bi bi-info-circle"></i>
-                            Video real-time dengan bounding box deteksi.
-                        </div>
-
-                        <div class="video-wrapper">
-                            <video id="videoElement" playsinline autoplay muted></video>
-                            <canvas id="displayCanvas"></canvas>
-                            <canvas id="captureCanvas"></canvas>
-                            <div class="overlay-box" id="fpsBox">FPS: 0</div>
-                        </div>
-
-                        <div style="margin-top: 15px;">
-                            <span class="status-badge" id="statusBadge">⛔ Status: Stopped</span>
-                            <span id="detectionStatus" style="font-size: 0.9rem; color: #666; margin-left: 10px;">
-                                Deteksi: Ready
-                            </span>
-                        </div>
-
-                        <div class="btn-group-custom">
-                            <button id="startBtn" class="btn btn-custom btn-start">
-                                <i class="bi bi-play-circle"></i> Mulai
-                            </button>
-                            <button id="stopBtn" class="btn btn-custom btn-stop" disabled>
-                                <i class="bi bi-stop-circle"></i> Hentikan
-                            </button>
-                        </div>
-
-                        <div style="margin-top: 25px;">
-                            <h6 style="color: #333; margin-bottom: 15px;">
-                                <i class="bi bi-bar-chart"></i> Statistik Real-time
-                            </h6>
-                            <div class="stats-grid">
-                                <div class="stat-box">
-                                    <div class="stat-number" style="color: #667eea;" id="totalDeteksi">0</div>
-                                    <div class="stat-label">Total</div>
-                                </div>
-                                <div class="stat-box">
-                                    <div class="stat-number" style="color: #28a745;" id="countMentah">0</div>
-                                    <div class="stat-label">Mentah</div>
-                                </div>
-                                <div class="stat-box">
-                                    <div class="stat-number" style="color: #ffc107;" id="countSetengah">0</div>
-                                    <div class="stat-label">Setengah</div>
-                                </div>
-                                <div class="stat-box">
-                                    <div class="stat-number" style="color: #dc3545;" id="countMatang">0</div>
-                                    <div class="stat-label">Matang</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="margin-top: 20px;">
-                            <h6 style="color: #333; margin-bottom: 10px;">
-                                <i class="bi bi-list-check"></i> Hasil Deteksi
-                            </h6>
-                            <div id="detectionResults" style="max-height: 200px; overflow-y: auto;">
-                                <p style="color: #999; text-align: center;">Menunggu deteksi...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-camera-video"></i> Kamera Live dengan Deteksi
             </div>
+            <div class="card-body">
+              <div class="info-box">
+                <i class="bi bi-info-circle"></i>
+                Video real-time dengan bounding box deteksi.
+              </div>
 
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-header">
-                        <i class="bi bi-info-circle"></i> Informasi Kelas
+              <div class="video-wrapper">
+                <video id="videoElement" playsinline autoplay muted></video>
+                <canvas id="displayCanvas"></canvas>
+                <canvas id="captureCanvas"></canvas>
+                <div class="overlay-box" id="fpsBox">FPS: 0</div>
+              </div>
+
+              <div style="margin-top: 15px">
+                <span class="status-badge" id="statusBadge"
+                  >⛔ Status: Stopped</span
+                >
+                <span
+                  id="detectionStatus"
+                  style="font-size: 0.9rem; color: #666; margin-left: 10px"
+                >
+                  Deteksi: Ready
+                </span>
+              </div>
+
+              <div class="btn-group-custom">
+                <button id="startBtn" class="btn btn-custom btn-start">
+                  <i class="bi bi-play-circle"></i> Mulai
+                </button>
+                <button id="stopBtn" class="btn btn-custom btn-stop" disabled>
+                  <i class="bi bi-stop-circle"></i> Hentikan
+                </button>
+              </div>
+
+              <div style="margin-top: 25px">
+                <h6 style="color: #333; margin-bottom: 15px">
+                  <i class="bi bi-bar-chart"></i> Statistik Real-time
+                </h6>
+                <div class="stats-grid">
+                  <div class="stat-box">
+                    <div
+                      class="stat-number"
+                      style="color: #667eea"
+                      id="totalDeteksi"
+                    >
+                      0
                     </div>
-                    <div class="card-body">
-                        <div class="deteksi-item mentah">
-                            <div style="font-weight: 600; margin-bottom: 3px;">🟢 Mentah</div>
-                            <div style="color: #666; font-size: 0.85rem;">
-                                Hijau, belum matang, rasanya asam.
-                            </div>
-                        </div>
-
-                        <div class="deteksi-item setengah">
-                            <div style="font-weight: 600; margin-bottom: 3px;">🟡 Setengah Matang</div>
-                            <div style="color: #666; font-size: 0.85rem;">
-                                Kuning-orange, manis tapi masih asam.
-                            </div>
-                        </div>
-
-                        <div class="deteksi-item matang">
-                            <div style="font-weight: 600; margin-bottom: 3px;">🔴 Matang</div>
-                            <div style="color: #666; font-size: 0.85rem;">
-                                Merah cerah, rasa manis, siap panen.
-                            </div>
-                        </div>
+                    <div class="stat-label">Total</div>
+                  </div>
+                  <div class="stat-box">
+                    <div
+                      class="stat-number"
+                      style="color: #28a745"
+                      id="countMentah"
+                    >
+                      0
                     </div>
+                    <div class="stat-label">Mentah</div>
+                  </div>
+                  <div class="stat-box">
+                    <div
+                      class="stat-number"
+                      style="color: #ffc107"
+                      id="countSetengah"
+                    >
+                      0
+                    </div>
+                    <div class="stat-label">Setengah</div>
+                  </div>
+                  <div class="stat-box">
+                    <div
+                      class="stat-number"
+                      style="color: #dc3545"
+                      id="countMatang"
+                    >
+                      0
+                    </div>
+                    <div class="stat-label">Matang</div>
+                  </div>
                 </div>
+              </div>
 
-                <div class="card" style="margin-top: 20px;">
-                    <div class="card-header">
-                        <i class="bi bi-gear"></i> Pengaturan
-                    </div>
-                    <div class="card-body">
-                        <div class="slider-container">
-                            <label class="slider-label">Interval Deteksi (ms)</label>
-                            <input type="range" id="intervalSlider" min="200" max="2000" value="500">
-                            <div class="slider-value">
-                                <strong id="intervalValue">500</strong>ms
-                            </div>
-                        </div>
-
-                        <hr style="margin: 15px 0;">
-
-                        <div class="slider-container">
-                            <label class="slider-label">Confidence Threshold</label>
-                            <input type="range" id="confidenceSlider" min="0.1" max="0.9" value="0.35" step="0.05">
-                            <div class="slider-value">
-                                <strong id="confidenceValue">0.35</strong>
-                            </div>
-                        </div>
-
-                        <hr style="margin: 15px 0;">
-
-                        <div style="background: #f8f9fa; padding: 12px; border-radius: 5px; font-size: 0.85rem; color: #666; line-height: 1.6;">
-                            <i class="bi bi-lightbulb"></i> <strong>Tips:</strong>
-                            <ul style="margin-top: 8px; margin-bottom: 0; padding-left: 18px;">
-                                <li>Box tidak terlihat? Buka Console (F12)</li>
-                                <li>Video patah? Naikkan interval ke 1000ms</li>
-                                <li>Tutup aplikasi berat lain</li>
-                            </ul>
-                        </div>
-                    </div>
+              <div style="margin-top: 20px">
+                <h6 style="color: #333; margin-bottom: 10px">
+                  <i class="bi bi-list-check"></i> Hasil Deteksi
+                </h6>
+                <div
+                  id="detectionResults"
+                  style="max-height: 200px; overflow-y: auto"
+                >
+                  <p style="color: #999; text-align: center">
+                    Menunggu deteksi...
+                  </p>
                 </div>
+              </div>
             </div>
+          </div>
         </div>
+
+        <div class="col-lg-4">
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-info-circle"></i> Informasi Kelas
+            </div>
+            <div class="card-body">
+              <div class="deteksi-item mentah">
+                <div style="font-weight: 600; margin-bottom: 3px">
+                  🟢 Mentah
+                </div>
+                <div style="color: #666; font-size: 0.85rem">
+                  Hijau, belum matang, rasanya asam.
+                </div>
+              </div>
+
+              <div class="deteksi-item setengah">
+                <div style="font-weight: 600; margin-bottom: 3px">
+                  🟡 Setengah Matang
+                </div>
+                <div style="color: #666; font-size: 0.85rem">
+                  Kuning-orange, manis tapi masih asam.
+                </div>
+              </div>
+
+              <div class="deteksi-item matang">
+                <div style="font-weight: 600; margin-bottom: 3px">
+                  🔴 Matang
+                </div>
+                <div style="color: #666; font-size: 0.85rem">
+                  Merah cerah, rasa manis, siap panen.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 20px">
+            <div class="card-header"><i class="bi bi-gear"></i> Pengaturan</div>
+            <div class="card-body">
+              <div class="slider-container">
+                <label class="slider-label">Interval Deteksi (ms)</label>
+                <input
+                  type="range"
+                  id="intervalSlider"
+                  min="200"
+                  max="2000"
+                  value="500"
+                />
+                <div class="slider-value">
+                  <strong id="intervalValue">500</strong>ms
+                </div>
+              </div>
+
+              <hr style="margin: 15px 0" />
+
+              <div class="slider-container">
+                <label class="slider-label">Confidence Threshold</label>
+                <input
+                  type="range"
+                  id="confidenceSlider"
+                  min="0.1"
+                  max="0.9"
+                  value="0.35"
+                  step="0.05"
+                />
+                <div class="slider-value">
+                  <strong id="confidenceValue">0.35</strong>
+                </div>
+              </div>
+
+              <hr style="margin: 15px 0" />
+
+              <div
+                style="
+                  background: #f8f9fa;
+                  padding: 12px;
+                  border-radius: 5px;
+                  font-size: 0.85rem;
+                  color: #666;
+                  line-height: 1.6;
+                "
+              >
+                <i class="bi bi-lightbulb"></i> <strong>Tips:</strong>
+                <ul
+                  style="margin-top: 8px; margin-bottom: 0; padding-left: 18px"
+                >
+                  <li>Box tidak terlihat? Buka Console (F12)</li>
+                  <li>Video patah? Naikkan interval ke 1000ms</li>
+                  <li>Tutup aplikasi berat lain</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <footer>
-        <p>🍒 Deteksi Kematangan Kersen menggunakan YOLOv8</p>
-        <p style="margin-top: 5px;">© 2025</p>
+      <p>🍒 Deteksi Kematangan Kersen menggunakan YOLOv8</p>
+      <p style="margin-top: 5px">© 2025</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Elements
-        const video = document.getElementById('videoElement');
-        const displayCanvas = document.getElementById('displayCanvas');
-        const displayCtx = displayCanvas.getContext('2d');
-        const captureCanvas = document.getElementById('captureCanvas');
-        const captureCtx = captureCanvas.getContext('2d');
+      // Elements
+      const video = document.getElementById("videoElement");
+      const displayCanvas = document.getElementById("displayCanvas");
+      const displayCtx = displayCanvas.getContext("2d");
+      const captureCanvas = document.getElementById("captureCanvas");
+      const captureCtx = captureCanvas.getContext("2d");
 
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const statusBadge = document.getElementById('statusBadge');
-        const detectionStatus = document.getElementById('detectionStatus');
-        const fpsBox = document.getElementById('fpsBox');
+      const startBtn = document.getElementById("startBtn");
+      const stopBtn = document.getElementById("stopBtn");
+      const statusBadge = document.getElementById("statusBadge");
+      const detectionStatus = document.getElementById("detectionStatus");
+      const fpsBox = document.getElementById("fpsBox");
 
-        const intervalSlider = document.getElementById('intervalSlider');
-        const intervalValue = document.getElementById('intervalValue');
-        const confidenceSlider = document.getElementById('confidenceSlider');
-        const confidenceValue = document.getElementById('confidenceValue');
-        const detectionResults = document.getElementById('detectionResults');
+      const intervalSlider = document.getElementById("intervalSlider");
+      const intervalValue = document.getElementById("intervalValue");
+      const confidenceSlider = document.getElementById("confidenceSlider");
+      const confidenceValue = document.getElementById("confidenceValue");
+      const detectionResults = document.getElementById("detectionResults");
 
-        // State
-        let stream = null;
-        let isRunning = false;
-        let detectionTimer = null;
-        let currentInterval = 500;
-        let currentConfidence = 0.35;
-        let isDetecting = false;
+      // State
+      let stream = null;
+      let isRunning = false;
+      let detectionTimer = null;
+      let currentInterval = 500;
+      let currentConfidence = 0.35;
+      let isDetecting = false;
 
-        let frameCount = 0;
-        let lastFpsTime = Date.now();
-        let fps = 0;
+      let frameCount = 0;
+      let lastFpsTime = Date.now();
+      let fps = 0;
 
-        let lastDetections = [];
+      let lastDetections = [];
 
-        // Events
-        startBtn.addEventListener('click', startCamera);
-        stopBtn.addEventListener('click', stopCamera);
+      // Events
+      startBtn.addEventListener("click", startCamera);
+      stopBtn.addEventListener("click", stopCamera);
 
-        intervalSlider.addEventListener('input', (e) => {
-            currentInterval = parseInt(e.target.value);
-            intervalValue.textContent = currentInterval;
-            if (isRunning && detectionTimer) {
-                clearInterval(detectionTimer);
-                startDetection();
-            }
+      intervalSlider.addEventListener("input", (e) => {
+        currentInterval = parseInt(e.target.value);
+        intervalValue.textContent = currentInterval;
+        if (isRunning && detectionTimer) {
+          clearInterval(detectionTimer);
+          startDetection();
+        }
+      });
+
+      confidenceSlider.addEventListener("input", (e) => {
+        currentConfidence = parseFloat(e.target.value);
+        confidenceValue.textContent = currentConfidence.toFixed(2);
+      });
+
+      // Functions
+      async function startCamera() {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: "environment",
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+            },
+          });
+
+          video.srcObject = stream;
+
+          startBtn.disabled = true;
+          stopBtn.disabled = false;
+          isRunning = true;
+
+          statusBadge.textContent = "🔴 Status: Running";
+          statusBadge.classList.add("status-running");
+          statusBadge.classList.remove("status-stopped");
+
+          video.onloadedmetadata = () => {
+            console.log(
+              `Video loaded: ${video.videoWidth}x${video.videoHeight}`
+            );
+
+            displayCanvas.width = video.videoWidth;
+            displayCanvas.height = video.videoHeight;
+            captureCanvas.width = video.videoWidth;
+            captureCanvas.height = video.videoHeight;
+
+            console.log(
+              `Canvas ready: ${displayCanvas.width}x${displayCanvas.height}`
+            );
+
+            renderLoop();
+            startDetection();
+          };
+        } catch (error) {
+          alert("❌ Gagal akses kamera");
+          console.error(error);
+        }
+      }
+
+      function stopCamera() {
+        if (stream) {
+          stream.getTracks().forEach((t) => t.stop());
+          isRunning = false;
+
+          startBtn.disabled = false;
+          stopBtn.disabled = true;
+
+          statusBadge.textContent = "⛔ Status: Stopped";
+          statusBadge.classList.remove("status-running");
+          statusBadge.classList.add("status-stopped");
+
+          if (detectionTimer) clearInterval(detectionTimer);
+
+          displayCtx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
+        }
+      }
+
+      function renderLoop() {
+        if (!isRunning) return;
+
+        // Copy video ke display canvas
+        displayCtx.drawImage(video, 0, 0);
+
+        frameCount++;
+        const now = Date.now();
+        if (now - lastFpsTime >= 1000) {
+          fps = frameCount;
+          frameCount = 0;
+          lastFpsTime = now;
+          fpsBox.textContent = `FPS: ${fps}`;
+        }
+
+        // Draw bounding boxes
+        drawBoxes();
+
+        requestAnimationFrame(renderLoop);
+      }
+
+      function drawBoxes() {
+        lastDetections.forEach((det) => {
+          const x1 = det.x1;
+          const y1 = det.y1;
+          const x2 = det.x2;
+          const y2 = det.y2;
+          const kelas = det.kelas;
+          const conf = det.confidence;
+
+          // Warna HEX sesuai harapan
+          let color = "#00ff00"; // Mentah - HIJAU
+          if (kelas === "Setengah Matang")
+            color = "#ffff00"; // Setengah - KUNING
+          else if (kelas === "Matang") color = "#ff0000"; // Matang - MERAH
+
+          // Draw box
+          displayCtx.strokeStyle = color;
+          displayCtx.lineWidth = 3;
+          displayCtx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+
+          // Draw label
+          const label = `${kelas} ${(conf * 100).toFixed(0)}%`;
+          displayCtx.font = "bold 14px Arial";
+          const textW = displayCtx.measureText(label).width + 8;
+          const textH = 20;
+
+          displayCtx.fillStyle = color;
+          displayCtx.fillRect(x1, y1 - textH - 5, textW, textH);
+
+          displayCtx.fillStyle = "#000";
+          displayCtx.fillText(label, x1 + 4, y1 - 8);
         });
+      }
 
-        confidenceSlider.addEventListener('input', (e) => {
-            currentConfidence = parseFloat(e.target.value);
-            confidenceValue.textContent = currentConfidence.toFixed(2);
-        });
+      function startDetection() {
+        detectionTimer = setInterval(async () => {
+          if (!isRunning || isDetecting) return;
 
-        // Functions
-        async function startCamera() {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { 
-                        facingMode: 'environment',
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
-                    }
-                });
+          isDetecting = true;
+          detectionStatus.innerHTML =
+            'Deteksi: <span class="loading-indicator"></span>';
 
-                video.srcObject = stream;
-                
-                startBtn.disabled = true;
-                stopBtn.disabled = false;
-                isRunning = true;
+          try {
+            captureCtx.drawImage(video, 0, 0);
+            const imageData = captureCanvas.toDataURL("image/jpeg", 0.7);
 
-                statusBadge.textContent = '🔴 Status: Running';
-                statusBadge.classList.add('status-running');
-                statusBadge.classList.remove('status-stopped');
-
-                video.onloadedmetadata = () => {
-                    console.log(`Video loaded: ${video.videoWidth}x${video.videoHeight}`);
-                    
-                    displayCanvas.width = video.videoWidth;
-                    displayCanvas.height = video.videoHeight;
-                    captureCanvas.width = video.videoWidth;
-                    captureCanvas.height = video.videoHeight;
-                    
-                    console.log(`Canvas ready: ${displayCanvas.width}x${displayCanvas.height}`);
-                    
-                    renderLoop();
-                    startDetection();
-                };
-            } catch (error) {
-                alert('❌ Gagal akses kamera');
-                console.error(error);
-            }
-        }
-
-        function stopCamera() {
-            if (stream) {
-                stream.getTracks().forEach(t => t.stop());
-                isRunning = false;
-                
-                startBtn.disabled = false;
-                stopBtn.disabled = true;
-
-                statusBadge.textContent = '⛔ Status: Stopped';
-                statusBadge.classList.remove('status-running');
-                statusBadge.classList.add('status-stopped');
-
-                if (detectionTimer) clearInterval(detectionTimer);
-
-                displayCtx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
-            }
-        }
-
-        function renderLoop() {
-            if (!isRunning) return;
-
-            // Copy video ke display canvas
-            displayCtx.drawImage(video, 0, 0);
-
-            frameCount++;
-            const now = Date.now();
-            if (now - lastFpsTime >= 1000) {
-                fps = frameCount;
-                frameCount = 0;
-                lastFpsTime = now;
-                fpsBox.textContent = `FPS: ${fps}`;
-            }
-
-            // Draw bounding boxes
-            drawBoxes();
-
-            requestAnimationFrame(renderLoop);
-        }
-
-        function drawBoxes() {
-            lastDetections.forEach((det) => {
-                const x1 = det.x1;
-                const y1 = det.y1;
-                const x2 = det.x2;
-                const y2 = det.y2;
-                const kelas = det.kelas;
-                const conf = det.confidence;
-
-                // Warna
-                let color = '#00ff00';
-                if (kelas === 'Setengah Matang') color = '#00a5ff';
-                else if (kelas === 'Matang') color = '#0000ff';
-
-                // Draw box
-                displayCtx.strokeStyle = color;
-                displayCtx.lineWidth = 3;
-                displayCtx.strokeRect(x1, y1, x2 - x1, y2 - y1);
-
-                // Draw label
-                const label = `${kelas} ${(conf * 100).toFixed(0)}%`;
-                displayCtx.font = 'bold 14px Arial';
-                const textW = displayCtx.measureText(label).width + 8;
-                const textH = 20;
-
-                displayCtx.fillStyle = color;
-                displayCtx.fillRect(x1, y1 - textH - 5, textW, textH);
-
-                displayCtx.fillStyle = '#000';
-                displayCtx.fillText(label, x1 + 4, y1 - 8);
-            });
-        }
-
-        function startDetection() {
-            detectionTimer = setInterval(async () => {
-                if (!isRunning || isDetecting) return;
-
-                isDetecting = true;
-                detectionStatus.innerHTML = 'Deteksi: <span class="loading-indicator"></span>';
-
-                try {
-                    captureCtx.drawImage(video, 0, 0);
-                    const imageData = captureCanvas.toDataURL('image/jpeg', 0.7);
-
-                    const response = await fetch('/detect', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            image: imageData,
-                            confidence: currentConfidence
-                        })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.status === 'success') {
-                        lastDetections = data.deteksi;
-                        console.log(`✅ Deteksi: ${data.deteksi.length} objek`);
-                        updateStats(data.deteksi);
-                        updateDisplay(data.deteksi);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                } finally {
-                    isDetecting = false;
-                    detectionStatus.textContent = 'Deteksi: Ready';
-                }
-            }, currentInterval);
-        }
-
-        function updateStats(deteksi) {
-            let mentah = 0, setengah = 0, matang = 0;
-            deteksi.forEach(item => {
-                if (item.kelas === 'Mentah') mentah++;
-                else if (item.kelas === 'Setengah Matang') setengah++;
-                else if (item.kelas === 'Matang') matang++;
+            const response = await fetch("/detect", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                image: imageData,
+                confidence: currentConfidence,
+              }),
             });
 
-            document.getElementById('totalDeteksi').textContent = deteksi.length;
-            document.getElementById('countMentah').textContent = mentah;
-            document.getElementById('countSetengah').textContent = setengah;
-            document.getElementById('countMatang').textContent = matang;
-        }
+            const data = await response.json();
 
-        function updateDisplay(deteksi) {
-            let html = '';
+            if (data.status === "success") {
+              lastDetections = data.deteksi;
+              console.log(`✅ Deteksi: ${data.deteksi.length} objek`);
+              updateStats(data.deteksi);
+              updateDisplay(data.deteksi);
+            }
+          } catch (error) {
+            console.error("Error:", error);
+          } finally {
+            isDetecting = false;
+            detectionStatus.textContent = "Deteksi: Ready";
+          }
+        }, currentInterval);
+      }
 
-            if (deteksi.length === 0) {
-                html = '<p style="color: #999; text-align: center;">Belum ada deteksi</p>';
-            } else {
-                deteksi.forEach((item, idx) => {
-                    const color = item.kelas === 'Mentah' ? 'mentah' : 
-                                 item.kelas === 'Setengah Matang' ? 'setengah' : 'matang';
-                    
-                    html += `
+      function updateStats(deteksi) {
+        let mentah = 0,
+          setengah = 0,
+          matang = 0;
+        deteksi.forEach((item) => {
+          if (item.kelas === "Mentah") mentah++;
+          else if (item.kelas === "Setengah Matang") setengah++;
+          else if (item.kelas === "Matang") matang++;
+        });
+
+        document.getElementById("totalDeteksi").textContent = deteksi.length;
+        document.getElementById("countMentah").textContent = mentah;
+        document.getElementById("countSetengah").textContent = setengah;
+        document.getElementById("countMatang").textContent = matang;
+      }
+
+      function updateDisplay(deteksi) {
+        let html = "";
+
+        if (deteksi.length === 0) {
+          html =
+            '<p style="color: #999; text-align: center;">Belum ada deteksi</p>';
+        } else {
+          deteksi.forEach((item, idx) => {
+            const color =
+              item.kelas === "Mentah"
+                ? "mentah"
+                : item.kelas === "Setengah Matang"
+                ? "setengah"
+                : "matang";
+
+            html += `
                         <div class="deteksi-item ${color}">
                             <strong>#${idx + 1} ${item.kelas}</strong>
-                            <div style="font-size: 0.8rem; color: #666;">Conf: ${(item.confidence * 100).toFixed(0)}%</div>
+                            <div style="font-size: 0.8rem; color: #666;">Conf: ${(
+                              item.confidence * 100
+                            ).toFixed(0)}%</div>
                         </div>
                     `;
-                });
-            }
-
-            detectionResults.innerHTML = html;
+          });
         }
 
-        // Init
-        window.addEventListener('load', () => {
-            console.log('🚀 App ready!');
-        });
+        detectionResults.innerHTML = html;
+      }
 
-        window.addEventListener('beforeunload', () => {
-            if (stream) stream.getTracks().forEach(t => t.stop());
-        });
+      // Init
+      window.addEventListener("load", () => {
+        console.log("🚀 App ready!");
+      });
+
+      window.addEventListener("beforeunload", () => {
+        if (stream) stream.getTracks().forEach((t) => t.stop());
+      });
     </script>
-</body>
+  </body>
 </html>
