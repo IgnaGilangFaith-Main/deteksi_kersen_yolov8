@@ -16,15 +16,22 @@ PATH_DATA_YAML = r"train_split/data.yaml"
 FOLDER_MODELS = r"models"
 FOLDER_RESULTS = r"results"
 
-# KONFIGURASI CEPAT (untuk CPU)
-EPOCH = 100              
-BATCH_SIZE = 8          
-UKURAN_GAMBAR = 416     
-PATIENCE = 0            
+# KONFIGURASI RINGAN (untuk CPU) DENGAN AUGMENTASI
+EPOCH = 150             # Sedikit lebih banyak epoch untuk augmentasi
+BATCH_SIZE = 16         # Sesuaikan jika VRAM tidak cukup
+UKURAN_GAMBAR = 416     # Ukuran lebih kecil, lebih cepat
+PATIENCE = 20           # Berhenti jika tidak ada peningkatan setelah 20 epoch
 
 # ============================================
 # SETUP
 # ============================================
+
+def hapus_folder_jika_ada(folder_path):
+    """Menghapus folder jika sudah ada untuk memastikan kebersihan."""
+    if os.path.exists(folder_path):
+        import shutil
+        shutil.rmtree(folder_path)
+        print(f"🗑️  Folder lama dihapus: {folder_path}")
 
 Path(FOLDER_MODELS).mkdir(exist_ok=True)
 Path(FOLDER_RESULTS).mkdir(exist_ok=True)
@@ -49,6 +56,9 @@ else:
 
 print("=" * 50 + "\n")
 
+# Hapus folder hasil training lama jika ada
+hapus_folder_jika_ada(os.path.join(FOLDER_RESULTS, 'kersen_v2'))
+
 # ============================================
 # TRAINING
 # ============================================
@@ -59,10 +69,10 @@ print(f"Epoch: {EPOCH}")
 print(f"Batch size: {BATCH_SIZE}")
 print(f"Ukuran gambar: {UKURAN_GAMBAR}")
 print(f"Device: {device}")
-print(f"⏱️  Estimasi waktu: 10-20 menit di CPU\n")
+print(f"⏱️  Estimasi waktu: 15-30 menit di CPU\n")
 
 # Load model
-model = YOLO('yolov8s.pt')
+model = YOLO('yolov8s.pt') # Menggunakan model nano yang paling ringan
 
 # Training
 hasil = model.train(
@@ -77,21 +87,20 @@ hasil = model.train(
     save=True,
     verbose=True,
     pretrained=True,
-    optimizer='SGD',
-    momentum=0.937,
-    weight_decay=0.0005,
-    lr0=0.01,
+    optimizer='Adam', # Menggunakan Adam optimizer
+    lr0=0.001, # Learning rate yang umum untuk Adam
     plots=True,
+    # Augmentasi yang lebih kuat
     hsv_h=0.015,
     hsv_s=0.7,
     hsv_v=0.4,
-    degrees=10,
-    translate=0.1,
-    scale=0.5,
-    flipud=0.5,
-    fliplr=0.5,
-    mosaic=1.0,
-    mixup=0.0,
+    degrees=20.0,      # Rotasi gambar hingga 20 derajat
+    translate=0.2,     # Geser gambar hingga 20%
+    scale=0.7,         # Skala gambar antara 0.3 dan 1.7
+    flipud=0.5,        # Balik vertikal 50%
+    fliplr=0.5,        # Balik horizontal 50%
+    mosaic=1.0,        # Gabungkan 4 gambar menjadi 1
+    mixup=0.1,         # Campur 2 gambar (sangat efektif untuk generalisasi)
 )
 
 # ============================================

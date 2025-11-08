@@ -34,6 +34,13 @@ CONFIDENCE_THRESHOLD = 0.5
 # SETUP
 # ============================================
 
+def hapus_folder_jika_ada(folder_path):
+    """Menghapus folder jika sudah ada untuk memastikan kebersihan."""
+    if os.path.exists(folder_path):
+        import shutil
+        shutil.rmtree(folder_path)
+        print(f"🗑️  Folder lama dihapus: {folder_path}")
+
 Path(FOLDER_OUTPUT).mkdir(parents=True, exist_ok=True)
 
 # Cek device
@@ -55,6 +62,10 @@ else:
     print(f"Menggunakan: CPU")
 
 print("=" * 50 + "\n")
+
+# Hapus folder output lama jika ada
+hapus_folder_jika_ada(FOLDER_OUTPUT)
+Path(FOLDER_OUTPUT).mkdir(parents=True, exist_ok=True)
 
 # Cek model
 if not os.path.exists(PATH_MODEL):

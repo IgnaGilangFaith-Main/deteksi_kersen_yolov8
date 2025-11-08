@@ -28,6 +28,12 @@ KELAS_MAPPING = {
 # FUNGSI
 # ============================================
 
+def hapus_folder_jika_ada(folder_path):
+    """Menghapus folder jika sudah ada untuk memastikan kebersihan."""
+    if os.path.exists(folder_path):
+        shutil.rmtree(folder_path)
+        print(f"🗑️  Folder lama dihapus: {folder_path}")
+
 def buat_folder_split(path_output):
     """Membuat struktur folder train/val/test"""
     splits = ['train', 'val', 'test']
@@ -132,6 +138,9 @@ if __name__ == "__main__":
     print("=" * 50)
     print("SPLIT DATASET (Train/Val/Test)")
     print("=" * 50)
+    
+    # Hapus folder output lama jika ada
+    hapus_folder_jika_ada(PATH_OUTPUT)
     
     # Step 1: Buat folder
     buat_folder_split(PATH_OUTPUT)

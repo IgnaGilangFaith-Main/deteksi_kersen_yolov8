@@ -129,11 +129,11 @@ def detect():
         logger.debug(f"Frame shape: {frame.shape}")
         
         # Ambil confidence dari client (atau gunakan default)
-        confidence = data.get('confidence', 0.35)
+        confidence = data.get('confidence', 0.3)
         
         # Deteksi dengan confidence dari client
-        logger.debug(f"Menjalankan inference dengan confidence {confidence}...")
-        hasil = model.predict(frame, conf=confidence, verbose=False, device=device)
+        logger.debug(f"Menjalankan tracking dengan confidence {confidence}...")
+        hasil = model.track(frame, conf=confidence, verbose=False, device=device, persist=True)
         
         # Draw bounding box
         frame_hasil = frame.copy()
@@ -141,30 +141,38 @@ def detect():
         
         logger.debug(f"Jumlah deteksi: {len(hasil[0].boxes)}")
         
-        for box in hasil[0].boxes:
-            # Get coordinates
-            x1, y1, x2, y2 = map(int, box.xyxy[0])
-            id_kelas = int(box.cls[0])
-            confidence_score = float(box.conf[0])
-            nama_kelas = NAMA_KELAS.get(id_kelas, "Unknown")
-            warna = WARNA_KELAS.get(id_kelas, (255, 255, 255))
-            
-            # Draw rectangle
-            cv2.rectangle(frame_hasil, (x1, y1), (x2, y2), warna, 2)
-            
-            # Put text
-            label = f"{nama_kelas} ({confidence_score:.2f})"
-            cv2.putText(frame_hasil, label, (x1, y1-10), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.9, warna, 2)
-            
-            # Tambah ke list
-            deteksi_list.append({
-                'kelas': nama_kelas,
-                'confidence': round(confidence_score, 2),
-                'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2
-            })
-            
-            logger.debug(f"Deteksi: {nama_kelas} ({confidence_score:.2f}) Warna: {warna}")
+        # Pastikan ada hasil tracking sebelum diproses
+        if hasil[0].boxes.id is not None:
+            boxes = hasil[0].boxes.xyxy.cpu()
+            clss = hasil[0].boxes.cls.cpu().tolist()
+            confs = hasil[0].boxes.conf.cpu().tolist()
+            track_ids = hasil[0].boxes.id.int().cpu().tolist()
+
+            for box, track_id, cls, conf in zip(boxes, track_ids, clss, confs):
+                # Get coordinates
+                x1, y1, x2, y2 = map(int, box)
+                id_kelas = int(cls)
+                confidence_score = float(conf)
+                nama_kelas = NAMA_KELAS.get(id_kelas, "Unknown")
+                warna = WARNA_KELAS.get(id_kelas, (255, 255, 255))
+                
+                # Draw rectangle
+                cv2.rectangle(frame_hasil, (x1, y1), (x2, y2), warna, 2)
+                
+                # Put text with Track ID
+                label = f"ID:{track_id} {nama_kelas} ({confidence_score:.2f})"
+                cv2.putText(frame_hasil, label, (x1, y1-10), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, warna, 2)
+                
+                # Tambah ke list
+                deteksi_list.append({
+                    'track_id': track_id,
+                    'kelas': nama_kelas,
+                    'confidence': round(confidence_score, 2),
+                    'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2
+                })
+                
+                logger.debug(f"Track ID: {track_id} - Deteksi: {nama_kelas} ({confidence_score:.2f})")
         
         # Convert kembali ke base64
         _, buffer = cv2.imencode('.jpg', frame_hasil)
