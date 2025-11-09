@@ -58,6 +58,9 @@ def buat_folder_anotasi(path_base):
         f"{path_base}/images/mentah",
         f"{path_base}/images/setengah_matang",
         f"{path_base}/images/matang",
+        f"{path_base}/labels/mentah",
+        f"{path_base}/labels/setengah_matang",
+        f"{path_base}/labels/matang",
     ]
     
     for folder in folder_list:
@@ -251,6 +254,25 @@ def simpan_gambar_beranotasi(path_output, path_anotasi, kelas_mapping):
             
             gambar_dan_simpan_anotasi(path_gambar, path_label, path_output_file, kelas_mapping)
 
+def salin_label_anotasi(path_sumber_label, path_output_anotasi, kelas_mapping):
+    """Menyalin file label ke folder anotasi."""
+    print("\n📋 Menyalin file label ke folder anotasi...")
+    
+    for nama_folder in kelas_mapping.keys():
+        folder_sumber = os.path.join(path_sumber_label, "labels", nama_folder)
+        folder_tujuan = os.path.join(path_output_anotasi, "labels", nama_folder)
+        
+        if not os.path.exists(folder_sumber):
+            print(f"⚠️  Folder label sumber tidak ditemukan: {folder_sumber}")
+            continue
+        
+        file_label = [f for f in os.listdir(folder_sumber) if f.endswith('.txt')]
+        
+        for nama_file in tqdm(file_label, desc=f"Menyalin label {nama_folder}"):
+            sumber = os.path.join(folder_sumber, nama_file)
+            tujuan = os.path.join(folder_tujuan, nama_file)
+            shutil.copy2(sumber, tujuan)
+
 def buat_data_yaml(path_output):
     """Membuat file data.yaml untuk YOLO"""
     isi_yaml = """path: dataset_organized
@@ -316,6 +338,7 @@ if __name__ == "__main__":
     salin_gambar(DATASETS_PATH, OUTPUT_PATH, KELAS_MAPPING)
     auto_label_gambar(DATASETS_PATH, OUTPUT_PATH, KELAS_MAPPING)
     simpan_gambar_beranotasi(OUTPUT_PATH, ANNOTATED_OUTPUT_PATH, KELAS_MAPPING)
+    salin_label_anotasi(OUTPUT_PATH, ANNOTATED_OUTPUT_PATH, KELAS_MAPPING)
     buat_data_yaml(OUTPUT_PATH)
     verifikasi_dataset(OUTPUT_PATH, KELAS_MAPPING)
     
